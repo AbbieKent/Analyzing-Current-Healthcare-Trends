@@ -27,7 +27,7 @@ var margin= {
 var width = svgWidth -margin.left-margin.right;
 var height = svgHeight-margin.top- margin.bottom;
 
-var svg = d3. select('.chart').append('svg').attr('width', svgWidth).attr('height', svgHeight);
+var svg = d3. select('#scatter').append('svg').attr('width', svgWidth).attr('height', svgHeight).attr('class', 'chart');
 
 var chartGroup= svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
 
@@ -54,7 +54,7 @@ function renderAxes(newXScale, xAxis) {
   function renderCircles(circlesGroup, newXScale, chosenXAxis) {
 
     circlesGroup.transition()
-      .duration(1000)
+      .duration(10)
       .attr("cx", d => newXScale(d[chosenXAxis]));
   
     return circlesGroup;
@@ -62,14 +62,8 @@ function renderAxes(newXScale, xAxis) {
 
   function updateToolTip(chosenXAxis, circlesGroup){
 
-      var label;
-      
-      if (chosenXaxis === 'poverty'){
-          label = 'Poverty:';
-      }
-      else{
-          label ='Age'
-      }
+      var label= '% Poverty';
+    
 
       var toolTip = d3.tip()
         .attr('class', 'tooltip')
@@ -97,6 +91,7 @@ function renderAxes(newXScale, xAxis) {
         data.age = +data.age;
     });
 
+    
     var xLinearScale =xScale(data, chosenXaxis);
 
     var yLinearScale= d3.scaleLinear()
@@ -118,9 +113,12 @@ function renderAxes(newXScale, xAxis) {
         .append('circle')
         .attr('cx', d=> xLinearScale(d[chosenXaxis]))
         .attr('cy',d=> yLinearScale(d.healthcare))
-        .attr('r',20)
-        .attr('fill', 'pink')
-        .attr('opacity', '.5');
+        .attr('r',8)
+        .attr('fill', 'blue')
+        .attr('class',function(d){
+            return 'stateCircle'+d.abbr;
+        })
+        .attr('opacity', '.20');
 
     var labelsGroup = chartGroup.append('g')
         .attr('transform', `translate(${width/2}, ${height +20})`);
@@ -129,13 +127,8 @@ function renderAxes(newXScale, xAxis) {
         .attr("y", 20)
         .attr("value", "poverty") // value to grab for event listener
         .classed("active", true)
-        .text("Poverty");
-    var ageLevel = labelsGroup.append("text")
-        .attr("x", 0)
-        .attr("y", 40)
-        .attr("value", "age") // value to grab for event listener
-        .classed("inactive", true)
-        .text("age");
+        .text("in Poverty (%)");
+   
     
     chartGroup.append("text")
     .attr("transform", "rotate(-90)")
@@ -143,9 +136,8 @@ function renderAxes(newXScale, xAxis) {
     .attr("x", 0 - (height / 2))
     .attr("dy", "1em")
     .classed("axis-text", true)
-    .text("Healthcare");
+    .text("lacks Healthcare(%)");
 
-    var circlesGroup = updateToolTip(chosenXaxis, circlesGroup);
     labelsGroup.selectAll('text')
         .on('click',function(){
             var value =d3.select(this).attr('value');
@@ -159,9 +151,7 @@ function renderAxes(newXScale, xAxis) {
                     povertyLevel
                       .classed("active", true)
                       .classed("inactive", false);
-                    ageLevel
-                      .classed("active", false)
-                      .classed("inactive", true);
+                    
                   }
                   else {
                     povertyLevel
